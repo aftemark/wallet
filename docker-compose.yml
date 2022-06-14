@@ -1,0 +1,89 @@
+version: "3.8"
+
+services:
+  server:
+    container_name: server_container
+    build:
+      context: ./
+      dockerfile: build/wallet/Dockerfile
+    env_file:
+        - .env
+    ports:
+      - "8080:8080"
+    # volume must be added for compile watcher
+    #volumes:
+    #  - .:/go/src/wallet
+    depends_on:
+      - rabbitmq
+      - postgres
+    restart: always
+      
+  deposit_consumer:
+    container_name: deposit_consumer_container
+    build:
+      context: ./
+      dockerfile: build/deposit_consumer/Dockerfile
+    env_file:
+        - .env
+    depends_on:
+      - rabbitmq
+      - postgres
+    restart: always
+      
+  transfer_consumer:
+    container_name: transfer_consumer_container
+    build:
+      context: ./
+      dockerfile: build/transfer_consumer/Dockerfile
+    env_file:
+        - .env
+    depends_on:
+      - rabbitmq
+      - postgres
+    restart: always
+
+  postgres:
+    image: postgres:13-alpine
+    container_name: postgres_container
+    ports:
+      - 5432:5432
+    restart: always
+    env_file:
+        - .env
+    volumes:
+      - ./pgdata:/var/lib/postgres/data
+
+  postgres_test:
+    image: postgres:13-alpine
+    container_name: postgres_test_container
+    expose:
+      - ${POSTGRES_TEST_PORT}
+    ports:
+      - ${POSTGRES_TEST_PORT}:${POSTGRES_TEST_PORT}
+    env_file:
+        - .env
+    command: -p ${POSTGRES_TEST_PORT}
+      
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./migrations:/migrations
+    depends_on:
+      - postgres
+    command: -source=file://${MIGRATE_PATH} -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}?sslmode=disable up
+    restart: on-failure
+
+  migrate_test:
+    image: migrate/migrate
+    volumes:
+      - ./migrations:/migrations
+    depends_on:
+      - postgres_test
+    command: -source=file://${MIGRATE_PATH} -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_TEST_HOST}:${POSTGRES_TEST_PORT}/${POSTGRES_DB}?sslmode=disable up
+    restart: on-failure
+
+  rabbitmq:
+    image: 'rabbitmq:3.6-management-alpine'
+    ports:
+      - '5672:5672'
+      - '15672:15672'
