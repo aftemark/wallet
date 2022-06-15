@@ -20,7 +20,7 @@ func NewQueue(amqp *amqp.Connection, name string) (*queue, error) {
 
 	if _, err := ch.QueueDeclare(
 		name,
-		false,
+		true,
 		false,
 		false,
 		false,
@@ -42,8 +42,9 @@ func (q *queue) Publish(body []byte) error {
 		false,
 		false,
 		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        body,
+			ContentType:  "application/json",
+			DeliveryMode: 2,
+			Body:         body,
 		},
 	); err != nil {
 		return fmt.Errorf("failed to publish to AMQP channel %s: %#v", q.GetName(), body)
