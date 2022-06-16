@@ -58,7 +58,7 @@ func (s *server) handleToAMQP(c echo.Context, r request.RequestInterface) error 
 		)
 	}
 
-	q, err := rabbitmq.NewQueue(s.amqp, request.GetQueueName(r))
+	q, err := rabbitmq.NewQueue(s.amqp, r.GetQueueName())
 	if err != nil {
 		s.echo.Logger.Fatal(err)
 	}

@@ -22,7 +22,7 @@ func main() {
 	}
 	defer amqp.Close()
 
-	q, err := rabbitmq.NewQueue(amqp, request.GetQueueName(&request.Deposit{}))
+	q, err := rabbitmq.NewQueue(amqp, rabbitmq.Deposit)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -38,7 +38,7 @@ func main() {
 		for d := range deliveries {
 			r := &request.Deposit{}
 			if err := json.Unmarshal(d.Body, &r); err != nil {
-				log.Panicf("failed to bind delivery data %#v to binding %s: %v", d.Body, q.GetName(), err)
+				log.Panicf("failed to bind delivery data %#v to binding %s: %v", d.Body, rabbitmq.Deposit, err)
 			}
 
 			commandTag, err := db.Exec(context.Background(), "UPDATE wallets SET amount = amount + $1 WHERE id = $2", r.Amount, r.Receiver)

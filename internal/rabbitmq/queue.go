@@ -7,6 +7,12 @@ import (
 	"github.com/streadway/amqp"
 )
 
+// List of durable and persistent rabbitmq queues
+const (
+	Deposit = "deposit"
+	Transfer = "transfer"
+)
+
 type queue struct {
 	name    string
 	channel *amqp.Channel

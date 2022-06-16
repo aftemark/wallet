@@ -1,24 +1,15 @@
 package request
 
 import (
-	"reflect"
+	"wallet/internal/rabbitmq"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/jackc/pgx/v4"
 )
 
 type RequestInterface interface {
+	GetQueueName() string
 	Validate(db *pgx.Conn) error
-}
-
-// Names for request AMQP queue
-var queues = map[reflect.Type]string{
-	reflect.TypeOf(&Deposit{}):  "deposit",
-	reflect.TypeOf(&Transfer{}): "transfer",
-}
-
-func GetQueueName(r RequestInterface) string {
-	return queues[reflect.TypeOf(r)]
 }
 
 type Deposit struct {
@@ -36,6 +27,10 @@ func (d Deposit) Validate(db *pgx.Conn) error {
 			validation.By(validateDeposit(db, "wallets", "amount", d.Receiver)),
 		),
 	)
+}
+
+func (d Deposit) GetQueueName() string {
+	return rabbitmq.Deposit
 }
 
 type Transfer struct {
@@ -56,4 +51,8 @@ func (t Transfer) Validate(db *pgx.Conn) error {
 			validation.By(validateWithdrawal(db, "wallets", "amount", t.Sender)),
 		),
 	)
+}
+
+func (t Transfer) GetQueueName() string {
+	return rabbitmq.Transfer
 }

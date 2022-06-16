@@ -22,7 +22,7 @@ func main() {
 	}
 	defer amqp.Close()
 
-	q, err := rabbitmq.NewQueue(amqp, request.GetQueueName(&request.Transfer{}))
+	q, err := rabbitmq.NewQueue(amqp,rabbitmq.Transfer)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -38,7 +38,7 @@ func main() {
 		for d := range deliveries {
 			r := &request.Transfer{}
 			if err := json.Unmarshal(d.Body, &r); err != nil {
-				log.Panicf("failed to bind delivery data %#v to request %s: %v", d.Body, q.GetName(), err)
+				log.Panicf("failed to bind delivery data %#v to request %s: %v", d.Body, rabbitmq.Transfer, err)
 			}
 
 			qry := `WITH sender AS (
