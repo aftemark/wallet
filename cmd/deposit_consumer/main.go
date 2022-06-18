@@ -38,15 +38,15 @@ func main() {
 		for d := range deliveries {
 			r := &request.Deposit{}
 			if err := json.Unmarshal(d.Body, &r); err != nil {
-				log.Panicf("failed to bind delivery data %#v to binding %s: %v", d.Body, rabbitmq.Deposit, err)
+				log.Fatalf("failed to bind delivery data %#v to binding %s: %v", d.Body, rabbitmq.Deposit, err)
 			}
 
 			commandTag, err := db.Exec(context.Background(), "UPDATE wallets SET amount = amount + $1 WHERE id = $2", r.Amount, r.Receiver)
 			if err != nil {
-				log.Panicf("deposit operation failed: %v", err)
+				log.Fatalf("deposit operation failed: %v", err)
 			}
 			if commandTag.RowsAffected() != 1 {
-				log.Panicf("wallet %v not found!", r.Receiver)
+				log.Fatalf("wallet %v not found!", r.Receiver)
 			}
 		}
 	}()

@@ -38,7 +38,7 @@ func main() {
 		for d := range deliveries {
 			r := &request.Transfer{}
 			if err := json.Unmarshal(d.Body, &r); err != nil {
-				log.Panicf("failed to bind delivery data %#v to request %s: %v", d.Body, rabbitmq.Transfer, err)
+				log.Fatalf("failed to bind delivery data %#v to request %s: %v", d.Body, rabbitmq.Transfer, err)
 			}
 
 			qry := `WITH sender AS (
@@ -53,10 +53,10 @@ func main() {
 			WHERE sAmount >= $3 AND id IN ($1, $2)`
 			commandTag, err := db.Exec(context.Background(), qry, r.Sender, r.Receiver, r.Amount)
 			if err != nil {
-				log.Panicf("transfer operation failed: %v", err)
+				log.Fatalf("transfer operation failed: %v", err)
 			}
 			if commandTag.RowsAffected() != 2 {
-				log.Panic("transfer operation not executed properly!")
+				log.Fatal("transfer operation not executed properly!")
 			}
 		}
 	}()
