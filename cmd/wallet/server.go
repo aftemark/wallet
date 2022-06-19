@@ -25,7 +25,7 @@ func newServer() *server {
 }
 
 func (s *server) handleDeposit(c echo.Context) error {
-	if err := s.handleToAMQP(c, &request.Deposit{}); err != nil {
+	if err := s.handleToAMQP(c, &request.Deposit{}, rabbitmq.Deposit); err != nil {
 		return err
 	}
 
@@ -36,7 +36,7 @@ func (s *server) handleDeposit(c echo.Context) error {
 }
 
 func (s *server) handleTransfer(c echo.Context) error {
-	if err := s.handleToAMQP(c, &request.Transfer{}); err != nil {
+	if err := s.handleToAMQP(c, &request.Transfer{}, rabbitmq.Transfer); err != nil {
 		return err
 	}
 
@@ -46,7 +46,7 @@ func (s *server) handleTransfer(c echo.Context) error {
 	)
 }
 
-func (s *server) handleToAMQP(c echo.Context, r request.RequestInterface) error {
+func (s *server) handleToAMQP(c echo.Context, r request.RequestInterface, queueName string) error {
 	if err := c.Bind(r); err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (s *server) handleToAMQP(c echo.Context, r request.RequestInterface) error 
 		)
 	}
 
-	q, err := rabbitmq.NewQueue(s.amqp, r.GetQueueName())
+	q, err := rabbitmq.NewQueue(s.amqp, queueName)
 	if err != nil {
 		s.echo.Logger.Fatal(err)
 	}

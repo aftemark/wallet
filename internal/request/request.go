@@ -1,14 +1,11 @@
 package request
 
 import (
-	"wallet/internal/rabbitmq"
-
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/jackc/pgx/v4"
 )
 
 type RequestInterface interface {
-	GetQueueName() string
 	Validate(db *pgx.Conn) error
 }
 
@@ -29,10 +26,6 @@ func (d Deposit) Validate(db *pgx.Conn) error {
 	)
 }
 
-func (d Deposit) GetQueueName() string {
-	return rabbitmq.Deposit
-}
-
 type Transfer struct {
 	Sender   uint32  `json:"sender"`
 	Receiver uint32  `json:"receiver"`
@@ -51,8 +44,4 @@ func (t Transfer) Validate(db *pgx.Conn) error {
 			validation.By(validateWithdrawal(db, "wallets", "amount", t.Sender)),
 		),
 	)
-}
-
-func (t Transfer) GetQueueName() string {
-	return rabbitmq.Transfer
 }

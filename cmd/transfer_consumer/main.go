@@ -22,7 +22,7 @@ func main() {
 	}
 	defer amqp.Close()
 
-	q, err := rabbitmq.NewQueue(amqp,rabbitmq.Transfer)
+	q, err := rabbitmq.NewQueue(amqp, rabbitmq.Transfer)
 	if err != nil {
 		log.Fatal(err)
 	}
